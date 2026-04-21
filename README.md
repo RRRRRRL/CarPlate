@@ -17,19 +17,17 @@ This repository now includes a complete pipeline to compare the official YOLOv8 
 
 ## Repository structure
 
-- Existing files already in this repository:
+- Core comparison pipeline files:
+  - `yolov8_model.py` — official model loader
+  - `custom_yolo_model.py` — custom architecture
+  - `prepare_data.py` — 80/20 split + `dataset/data.yaml` generator
+  - `train_yolov8.py` — official YOLOv8 training script
+  - `train_custom.py` — custom model training loop
+  - `compare.py` — model comparison script
+- Supporting utilities:
   - `convert_annotations.py` — VOC XML to YOLO txt labels
-  - `prepare_dataset.py` — existing split helper
-  - `train.py` — existing YOLOv8 training/evaluation flow
-  - `evaluate.py` — existing IoU/CIoU evaluation
-  - `predict.py` — existing prediction script
-- New files for this comparison pipeline:
-  - `yolov8_model.py` — new official model loader
-  - `custom_yolo_model.py` — new custom architecture
-  - `prepare_data.py` — new 80/20 split + `data.yaml` generator
-  - `train_yolov8.py` — new official YOLOv8 training script
-  - `train_custom.py` — new custom model training loop
-  - `compare.py` — new model comparison script
+  - `evaluate.py` — IoU/CIoU evaluation
+  - `predict.py` — prediction script
 
 ## Installation
 
