@@ -39,13 +39,14 @@ class Bottleneck(nn.Module):
 class C2f(nn.Module):
     """YOLOv8-style C2f block."""
 
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, bottleneck_expansion=1.0):
         super().__init__()
         self.c = int(c2 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1, 1)
+        # Bottlenecks maintain channel count by default (bottleneck_expansion=1.0).
         self.m = nn.ModuleList(
-            Bottleneck(self.c, self.c, shortcut=shortcut, g=g, k=(3, 3), e=1.0) for _ in range(n)
+            Bottleneck(self.c, self.c, shortcut=shortcut, g=g, k=(3, 3), e=bottleneck_expansion) for _ in range(n)
         )
 
     def forward(self, x):

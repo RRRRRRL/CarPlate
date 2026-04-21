@@ -4,15 +4,26 @@ import random
 import shutil
 import yaml
 
+SUPPORTED_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
+
 
 def split_data(image_dir, label_dir, output_dir, split_ratio=0.8, seed=42):
+    """Split images/labels into train/val sets and generate YOLO data.yaml.
+
+    Args:
+        image_dir: Source directory containing input images.
+        label_dir: Source directory containing YOLO-format label .txt files.
+        output_dir: Dataset root where train/val folders and data.yaml are created.
+        split_ratio: Fraction of samples used for training.
+        seed: Random seed used for deterministic shuffling.
+    """
     random.seed(seed)
 
     for split in ("train", "val"):
         os.makedirs(os.path.join(output_dir, "images", split), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "labels", split), exist_ok=True)
 
-    images = [f for f in os.listdir(image_dir) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    images = [f for f in os.listdir(image_dir) if f.lower().endswith(SUPPORTED_IMAGE_EXTENSIONS)]
     if not images:
         raise ValueError(f"No images found in {image_dir}")
 
