@@ -58,6 +58,7 @@ class LarxelDataset(Dataset):
 
 
 def collate_fn(batch):
+    # Keeps labels as a list so each image can carry a variable number of bounding boxes.
     images = torch.stack([sample[0] for sample in batch], dim=0)
     labels = [sample[1] for sample in batch]
     return images, labels
@@ -96,7 +97,6 @@ def train_custom_model(
     batch_size=8,
     lr=1e-3,
     save_path="runs/custom_yolo/custom_yolo_best.pth",
-    batches_per_epoch=None,
     dataset_dir="dataset",
     img_size=640,
     num_workers=2,
@@ -108,7 +108,6 @@ def train_custom_model(
         batch_size: Batch size for DataLoader.
         lr: Optimizer learning rate.
         save_path: Destination path for best checkpoint.
-        batches_per_epoch: Optional cap on train batches per epoch.
         dataset_dir: Dataset root with images/labels train/val folders.
         img_size: Input image size (square).
         num_workers: DataLoader workers.
@@ -144,9 +143,6 @@ def train_custom_model(
         processed_batches = 0
 
         for images, batch_labels in train_loader:
-            if batches_per_epoch is not None and processed_batches >= batches_per_epoch:
-                break
-
             images = images.to(device, non_blocking=True)
 
             optimizer.zero_grad()
@@ -188,7 +184,6 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--save-path", default="runs/custom_yolo/custom_yolo_best.pth")
-    parser.add_argument("--batches-per-epoch", type=int, default=None)
     parser.add_argument("--dataset-dir", default="dataset")
     parser.add_argument("--img-size", type=int, default=640)
     parser.add_argument("--num-workers", type=int, default=2)
@@ -202,7 +197,6 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         lr=args.lr,
         save_path=args.save_path,
-        batches_per_epoch=args.batches_per_epoch,
         dataset_dir=args.dataset_dir,
         img_size=args.img_size,
         num_workers=args.num_workers,
