@@ -60,8 +60,8 @@ def split_data(image_dir, label_dir, output_dir, split_ratio=0.8, seed=42):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Split dataset into train/val and generate data.yaml")
-    parser.add_argument("--image-dir", default="data/images", help="Path to source images")
-    parser.add_argument("--label-dir", default="data/labels", help="Path to YOLO txt labels")
+    parser.add_argument("--image-dir", default="images", help="Path to source images")
+    parser.add_argument("--label-dir", default="labels", help="Path to YOLO txt labels")
     parser.add_argument("--output-dir", default="dataset", help="Output dataset root")
     parser.add_argument("--split-ratio", type=float, default=0.8, help="Train split ratio")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
