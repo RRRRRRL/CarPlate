@@ -130,14 +130,3 @@ class ImprovedCustomYOLO(nn.Module):
         out_large = self.head_large(p5)
 
         return out_small, out_medium, out_large
-
-
-if __name__ == "__main__":
-    model = ImprovedCustomYOLO(num_classes=1)
-    dummy = torch.randn(1, 3, 640, 640)
-    (cls_s, box_s), (cls_m, box_m), (cls_l, box_l) = model(dummy)
-
-    print("ImprovedCustomYOLO forward pass successful")
-    print(f"Stride 8  -> cls: {tuple(cls_s.shape)}, box: {tuple(box_s.shape)}")
-    print(f"Stride 16 -> cls: {tuple(cls_m.shape)}, box: {tuple(box_m.shape)}")
-    print(f"Stride 32 -> cls: {tuple(cls_l.shape)}, box: {tuple(box_l.shape)}")
