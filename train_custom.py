@@ -2,16 +2,17 @@ import argparse
 import os
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
+from torchvision.transforms import functional as TF
 
 from custom_yolo_model import ImprovedCustomYOLO
 
 SUPPORTED_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
+RESAMPLE_BILINEAR = Image.Resampling.BILINEAR if hasattr(Image, "Resampling") else Image.BILINEAR
 
 
 class LarxelDataset(Dataset):
@@ -39,8 +40,8 @@ class LarxelDataset(Dataset):
         image_path = self.image_files[index]
         label_path = self.label_dir / f"{image_path.stem}.txt"
 
-        image = Image.open(image_path).convert("RGB").resize((self.img_size, self.img_size))
-        image_tensor = torch.from_numpy(np.array(image)).permute(2, 0, 1).float() / 255.0
+        image = Image.open(image_path).convert("RGB").resize((self.img_size, self.img_size), RESAMPLE_BILINEAR)
+        image_tensor = TF.to_tensor(image)
 
         labels = []
         if label_path.exists():
@@ -66,17 +67,26 @@ def build_targets_for_scale(batch_labels, pred_cls, device):
     batch_size, _, grid_h, grid_w = pred_cls.shape
     target_cls = torch.zeros((batch_size, 1, grid_h, grid_w), device=device)
     target_box = torch.zeros((batch_size, 4, grid_h, grid_w), device=device)
+    target_count = torch.zeros((batch_size, 1, grid_h, grid_w), device=device)
 
     for b_idx, labels in enumerate(batch_labels):
         if labels.numel() == 0:
             continue
         labels = labels.to(device)
 
-        gx = (labels[:, 1] * grid_w).long().clamp_(0, grid_w - 1)
-        gy = (labels[:, 2] * grid_h).long().clamp_(0, grid_h - 1)
+        for label in labels:
+            x, y, w, h = label[1], label[2], label[3], label[4]
+            gx = min(max(int(x.item() * grid_w), 0), grid_w - 1)
+            gy = min(max(int(y.item() * grid_h), 0), grid_h - 1)
 
-        target_cls[b_idx, 0, gy, gx] = 1.0
-        target_box[b_idx, :, gy, gx] = labels[:, 1:5].T
+            target_cls[b_idx, 0, gy, gx] = 1.0
+            target_box[b_idx, 0, gy, gx] += x * grid_w - gx
+            target_box[b_idx, 1, gy, gx] += y * grid_h - gy
+            target_box[b_idx, 2, gy, gx] += w
+            target_box[b_idx, 3, gy, gx] += h
+            target_count[b_idx, 0, gy, gx] += 1.0
+
+    target_box = target_box / target_count.clamp(min=1.0)
 
     return target_cls, target_box
 
