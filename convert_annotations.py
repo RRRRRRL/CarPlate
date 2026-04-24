@@ -1,5 +1,6 @@
 import os
 import xml.etree.ElementTree as ET
+import argparse
 from PIL import Image
 
 
@@ -23,7 +24,7 @@ def convert_voc_to_yolo(xml_path, img_w, img_h):
 
 def process(img_dir, ann_dir, out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    xml_files = [f for f in os.listdir(ann_dir) if f.endswith(".xml")]
+    xml_files = [f for f in os.listdir(ann_dir) if f.lower().endswith(".xml")]
 
     if not xml_files:
         print(f"No XML files found in {ann_dir}")
@@ -44,8 +45,8 @@ def process(img_dir, ann_dir, out_dir):
             print(f"Warning: no image found for {xml_file}, skipping")
             continue
 
-        img = Image.open(img_path)
-        w, h = img.size
+        with Image.open(img_path) as img:
+            w, h = img.size
         lines = convert_voc_to_yolo(os.path.join(ann_dir, xml_file), w, h)
 
         out_path = os.path.join(out_dir, stem + ".txt")
@@ -55,5 +56,16 @@ def process(img_dir, ann_dir, out_dir):
     print(f"Converted {len(xml_files)} annotations → {out_dir}")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Convert Pascal VOC XML annotations to YOLO .txt labels."
+    )
+    parser.add_argument("--images-dir", default="images", help="Path to input images directory")
+    parser.add_argument("--annotations-dir", default="annotations", help="Path to VOC XML annotations directory")
+    parser.add_argument("--output-dir", default="labels", help="Path to output YOLO labels directory")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    process("data/images", "data/annotations", "data/labels")
+    args = parse_args()
+    process(args.images_dir, args.annotations_dir, args.output_dir)
